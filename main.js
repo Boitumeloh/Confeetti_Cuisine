@@ -19,10 +19,10 @@ const connectFlash = require("connect-flash");
 const expressValidator = require("express-validator");
 
 
-mongoose.connect("mongodb://0.0.0.0:27017/confetti_cuisine", {
+mongoose.connect("mongodb+srv://boitumelolefophane:confetticuisinepassword@cluster0.lri6s.mongodb.net/confetti_cuisine", {
   useNewUrlParser: true,
 });
-mongoose.set("useCreateIndex", true);
+//mongoose.set("useCreateIndex", true);
 
 app.set("port", process.env.PORT || 3000);
 app.set("view engine", "ejs");
