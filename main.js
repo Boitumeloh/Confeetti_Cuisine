@@ -20,9 +20,16 @@ const expressValidator = require("express-validator");
 //const { check, validationResult } = require('express-validator');
 
 
-mongoose.connect("mongodb+srv://boitumelolefophane:confetticuisinepassword@cluster0.lri6s.mongodb.net/confetti_cuisine", {
- // useNewUrlParser: true,
-});
+const uri = 'mongodb+srv://boitumelolefophane:confetticuisinepassword@cluster0.lri6s.mongodb.net/confetti_cuisine?retryWrites=true&w=majority';
+
+mongoose.connect(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex: true, // Ensures indexes are created properly
+  useFindAndModify: false // Disables deprecated findAndModify()
+})
+  .then(() => console.log('MongoDB connected successfully.'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 //mongoose.set("useCreateIndex", true);
 
 app.set("port", process.env.PORT || 3000);

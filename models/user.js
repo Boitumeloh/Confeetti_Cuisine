@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { Schema } = require("mongoose");
+const { Schema } = mongoose;
 const Subscriber = require("./subscriber");
 const bcrypt = require("bcrypt");
 const passportLocalMongoose = require("passport-local-mongoose");
@@ -44,55 +44,50 @@ const userSchema = new Schema(
     {
       timestamps: true,
     }
-  );
+);
 
+// Virtual for full name
 userSchema.virtual("fullName").get(function () {
   return `${this.name.first} ${this.name.last}`;
 });
 
-userSchema.pre("save", function(next) {
-  let user = this;
-  bcrypt
-    .hash(user.password, 10)
-    .then(hash => {
+// Pre-save hook to hash password
+userSchema.pre("save", async function (next) {
+  const user = this;
+
+  // Hash the password only if it is new or modified
+  if (user.isModified("password")) {
+    try {
+      const hash = await bcrypt.hash(user.password, 10);
       user.password = hash;
-      next();
-    })
-    .catch(error => {
+    } catch (error) {
       console.log(`Error in hashing password: ${error.message}`);
-      next(error);
-    });
+      return next(error);
+    }
+  }
+
+  // Check for subscriber account
+  if (!user.subscribedAccount) {
+    try {
+      const subscriber = await Subscriber.findOne({ email: user.email });
+      if (subscriber) {
+        user.subscribedAccount = subscriber._id; // Assigning ObjectId of the found subscriber
+      }
+    } catch (error) {
+      console.log(`Error in connecting subscriber: ${error.message}`);
+      return next(error);
+    }
+  }
+  
+  next();
 });
 
+// Method for password comparison
 userSchema.methods.passwordComparison = function (inputPassword) {
-  let user = this;
-  return bcrypt.compare(inputPassword, user.password);
+  return bcrypt.compare(inputPassword, this.password);
 };
 
-userSchema.pre("save", function (next) {
-  let user = this;
-  if (user.subscribedAccount === undefined) {
-    Subscriber.findOne({
-      email: user.email,
-    })
-      .then((subscriber) => {
-        user.subscribedAccount = subscriber;
-        next();
-      })
-      .catch((error) => {
-        console.log(`Error in connecting subscriber:
-            
-             ${error.message}`);
-        next(error);
-      });
-  } else {
-    next();
-  }
-});
+// Adding passport-local-mongoose as a plugin
+userSchema.plugin(passportLocalMongoose, { usernameField: "email" });
 
-//adding passport-local-mongoose module as a user schema plugin
-userSchema.plugin(passportLocalMongoose, {
-  usernameField: "email"
- });
- 
 module.exports = mongoose.model("User", userSchema);
