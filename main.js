@@ -17,10 +17,11 @@ const User = require("./models/user.js");
 const connectFlash = require("connect-flash");
 
 const expressValidator = require("express-validator");
+//const { check, validationResult } = require('express-validator');
 
 
 mongoose.connect("mongodb+srv://boitumelolefophane:confetticuisinepassword@cluster0.lri6s.mongodb.net/confetti_cuisine", {
-  useNewUrlParser: true,
+ // useNewUrlParser: true,
 });
 //mongoose.set("useCreateIndex", true);
 
